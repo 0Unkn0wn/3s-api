@@ -78,5 +78,4 @@ async def get_single_item(
 app.include_router(api_router)
 
 if __name__ == "__main__":
-    # uvicorn.run(app, host='0.0.0.0', port=8000)
-    app.run(debug=False)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
