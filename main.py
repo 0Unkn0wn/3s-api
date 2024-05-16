@@ -29,8 +29,13 @@ app = FastAPI(
 api_router = APIRouter()
 
 
+@api_router.get("/")
+async def get_index()->Any:
+    return "Root of the api"
+
+
 @api_router.get("/data/schemas", status_code=200)
-def get_schema_list() -> Any:
+async def get_schema_list() -> Any:
     result = db.get_all_schemas()
     if not result:
         raise HTTPException(status_code=404, detail=f"Schema list empty no schemas in this database")
@@ -38,7 +43,7 @@ def get_schema_list() -> Any:
 
 
 @api_router.get("/data/schemas/{schema_name}/tables", status_code=200)
-def get_table_list(
+async def get_table_list(
         schema_name: str,
 ) -> Any:
     result = db.get_tables_for_schema(schema_name)
@@ -48,7 +53,7 @@ def get_table_list(
 
 
 @api_router.get("/data/schemas/{schema_name}/tables/{table_name}", status_code=200)
-def get_all_data(
+async def get_all_data(
         schema_name: str,
         table_name: str,
         limit: Optional[int] = Query(None, gt=0, le=100),
