@@ -1,4 +1,4 @@
-name: Publish docker image as package
+name: Publish docker image as GitHub package
 
 on:
   workflow_run:
