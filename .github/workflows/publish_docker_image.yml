@@ -24,7 +24,10 @@ jobs:
         with:
           push: true
           tags: 0Unkn0wn/3s-api:latest
-
+          secrets: |
+              "DB_URL=${{ secrets.DB_URL }}"
+              "DB_USER=${{ secrets.DB_USER }}"
+              "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
 
 
 
