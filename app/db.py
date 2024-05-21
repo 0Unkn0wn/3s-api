@@ -1,5 +1,5 @@
+import os
 from typing import Type
-
 import sqlalchemy as sa
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -55,7 +55,12 @@ from typing import List, Type, Any, Dict
 
 
 # if __name__ == "__main__":
-engine = create_engine("postgresql://postgres:1qa2ws@127.0.0.1/imbor_database")
+
+DB_URL = os.environ.get('DB_URL')
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+
+engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_URL}/db-3s")
 
 # Reflect all tables from the database
 metadata = MetaData()
