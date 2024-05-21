@@ -13,7 +13,10 @@ RUN --mount=type=secret,id=DB_URL \
   --mount=type=secret,id=DB_PASSWORD \
    export DB_URL=$(cat /run/secrets/DB_URL) && \
    export DB_USER=$(cat /run/secrets/DB_USER) && \
-   export DB_PASSWORD=$(cat /run/secrets/DB_PASSWORD)
+   export DB_PASSWORD=$(cat /run/secrets/DB_PASSWORD) && \
+   echo $DB_URL && \
+   echo $DB_USER && \
+   echo $DB_PASSWORD
 
 EXPOSE 8000
 
