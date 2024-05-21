@@ -15,12 +15,20 @@ COPY ./app /code/app
 #    export DB_USER=$(cat /run/secrets/DB_USER) && \
 #    export DB_PASSWORD=$(cat /run/secrets/DB_PASSWORD)
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+
+RUN --mount=type=secret,id=DB_URL \
+  --mount=type=secret,id=DB_USER \
+  --mount=type=secret,id=DB_PASSWORD \
+   cat /run/secrets/DB_URL > /run/secret/DB_URL && \
+   cat /run/secrets/DB_USER > /run/secret/DB_USER && \
+   cat /run/secrets/DB_PASSWORD > /run/secret/DB_PASSWORD
+
+# COPY entrypoint.sh /entrypoint.sh
+# RUN chmod +x /entrypoint.sh
 
 
 EXPOSE 8000
 
-ENTRYPOINT ["/entrypoint.sh"]
+# ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["uvicorn", "app.main:app", "--host=0.0.0.0", "--port=80", "--log-level=debug"]        

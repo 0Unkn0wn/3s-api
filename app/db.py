@@ -56,9 +56,13 @@ from typing import List, Type, Any, Dict
 
 # if __name__ == "__main__":
 
-DB_URL = os.environ.get('DB_URL')
-DB_USER = os.environ.get('DB_USER')
-DB_PASSWORD = os.environ.get('DB_PASSWORD')
+# DB_URL = os.environ.get('DB_URL')
+# DB_USER = os.environ.get('DB_USER')
+# DB_PASSWORD = os.environ.get('DB_PASSWORD')
+
+DB_URL = open(/run/secret/DB_URL).readline().rstrip() if os.path.exists(secret_path) else ""
+DB_USER = open(/run/secret/DB_USER).readline().rstrip() if os.path.exists(secret_path) else ""
+DB_PASSWORD = open(/run/secret/DB_PASSWORD).readline().rstrip() if os.path.exists(secret_path) else ""
 
 engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_URL}/db-3s")
 
