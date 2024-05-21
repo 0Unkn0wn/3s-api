@@ -2,7 +2,7 @@ from fastapi import FastAPI, Query, HTTPException, status, Depends, APIRouter, R
 
 from typing import Annotated, Optional, Any, List, Dict
 
-import db
+import app.db
 
 import uvicorn
 
