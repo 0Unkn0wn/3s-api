@@ -9,21 +9,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to GH container registry
         uses: docker/login-action@v3.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Cleanup system
-        run: |
-          docker image prune
 
-      - name: Build Docker image
-        run: |
-          docker build --no-cache . -t ghcr.io/${{ github.actor }}/3s-api-docker:latest
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: 0Unkn0wn/3s-api:latest
 
-      - name: Publish image
-        run: |
-          docker push ghcr.io/${{ github.actor }}/3s-api-docker:latest
+
+
+
+
