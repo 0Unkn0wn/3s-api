@@ -17,4 +17,4 @@ RUN --mount=type=secret,id=DB_URL \
 
 EXPOSE 8000
 
-CMD ["fastapi", "run", "app/main.py", "--port", "8000"]
+CMD ["uvicorn", "api", "--host=0.0.0.0", "--port=80", "--log-level=debug"]        
