@@ -30,8 +30,8 @@ api_router = APIRouter()
 
 
 @api_router.get("/")
-async def get_index()->Any:
-    return "Root of the api"
+async def root():
+    return {"status":"OK"}
 
 
 @api_router.get("/data/schemas", status_code=200)
@@ -82,5 +82,5 @@ async def get_single_item(
 
 app.include_router(api_router)
 
-if __name__ == "__main__":
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+# if __name__ == "__main__":
+#     uvicorn.run(app, host='0.0.0.0', port=8000)
