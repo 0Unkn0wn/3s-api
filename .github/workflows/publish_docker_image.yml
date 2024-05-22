@@ -38,9 +38,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          # labels: ${{ steps.meta.outputs.labels }}          
-          labels: latest
+          # tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ github.actor }}/3s-api:latest
+          labels: ${{ steps.meta.outputs.labels }}       
           secrets: |
             "DB_URL=${{ secrets.DB_URL }}"
             "DB_USER=${{ secrets.DB_USER }}"
