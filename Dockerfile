@@ -8,6 +8,8 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
 
+COPY ./genenv.py /code/genenv.py
+
 RUN touch .env
 
 RUN --mount=type=secret,id=DB_URL \
