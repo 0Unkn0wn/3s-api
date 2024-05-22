@@ -22,15 +22,15 @@ jobs:
     - name: Log in to registry
       uses: docker/login-action@v2
       with:
-        registry: ghcr.io
-        username: ${{ secrets.AzureAppService_ContainerUsername_3f59f02f49da40b8a34be6660bef459f }}
-        password: ${{ secrets.AzureAppService_ContainerPassword_240b5849bcfb4322a5705378dd7f71ce }}
+        registry: https://ghcr.io/
+        username: ${{ secrets.AzureAppService_ContainerUsername_7ef4c0730f1248a4b8299bda859f5c05 }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_9bb0e4cb9494429a8f6eee78b20823c1 }}
 
     - name: Build and push container image to registry
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: ghcr.io/${{ secrets.AzureAppService_ContainerUsername_3f59f02f49da40b8a34be6660bef459f }}/0unkn0wn/3s-api:${{ github.sha }}
+        tags: ghcr.io/${{ secrets.AzureAppService_ContainerUsername_7ef4c0730f1248a4b8299bda859f5c05 }}//:${{ github.sha }}
         file: ./Dockerfile
 
   deploy:
@@ -47,5 +47,5 @@ jobs:
       with:
         app-name: '3s-grounded-133-api'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_fff1244c53274d37abf7d9ec6987a686 }}
-        images: 'ghcr.io/${{ secrets.AzureAppService_ContainerUsername_3f59f02f49da40b8a34be6660bef459f }}/0unkn0wn/3s-api:${{ github.sha }}'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_da20fbd4a31745608a25f9020c6e9b96 }}
+        images: 'ghcr.io/${{ secrets.AzureAppService_ContainerUsername_7ef4c0730f1248a4b8299bda859f5c05 }}//:${{ github.sha }}'
