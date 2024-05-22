@@ -39,7 +39,8 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}          
+          # labels: ${{ steps.meta.outputs.labels }}          
+          labels: latest
           secrets: |
             "DB_URL=${{ secrets.DB_URL }}"
             "DB_USER=${{ secrets.DB_USER }}"
