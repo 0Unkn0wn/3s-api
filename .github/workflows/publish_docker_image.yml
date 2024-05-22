@@ -20,7 +20,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'v0.2') }}
             type=sha,prefix={{branch}}-,suffix=-{{date 'X'}}
 
       - name: Set up Docker Buildx
@@ -38,9 +38,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: | 
-            ${{ steps.meta.outputs.tags }}
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'v0.2') }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}       
           secrets: |
             "DB_URL=${{ secrets.DB_URL }}"
