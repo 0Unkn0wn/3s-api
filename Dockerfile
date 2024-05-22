@@ -10,7 +10,7 @@ COPY ./app /code/app
 
 COPY ./genenv.py /code/genenv.py
 
-RUN touch .env
+RUN touch /code/.env
 
 RUN --mount=type=secret,id=DB_URL \
   --mount=type=secret,id=DB_USER \
