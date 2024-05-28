@@ -32,4 +32,4 @@ async def root():
 
 
 app.include_router(ground_data.router, prefix="/ground_data", tags=["ground_data"])
-app.include_router(root_router, prefix="/root", tags=["root"])
+app.include_router(root_router, tags=["root"])
