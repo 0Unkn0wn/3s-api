@@ -13,59 +13,11 @@ from sqlalchemy.testing.schema import Table
 from typing import List, Type, Any, Dict
 from dotenv import load_dotenv
 
-# engine = create_engine("postgresql://postgres:1qa2ws@127.0.0.1/imbor_database")
-#
-# session = Session(engine)
-#
-# metadata = MetaData()
-# metadata.reflect(engine)
-#
-# Base = automap_base(metadata=metadata)
-# Base.prepare(autoload_with=engine, schema="dbo")
-#
-# test = Base.classes.imborkern_attributen
-#
-# table_names = metadata.tables.keys()
-# table_names = list(map(lambda x: x.split(".")[1], table_names))
-#
-# insp = sa.inspect(engine)
-# schema_list = insp.get_schema_names()
-#
-# def make_catel(table_name, table_names):
-#     print(table_name)
-#     for table in table_names:
-#         if table == table_name:
-#             table = table.split('.')[-1]
-#             return getattr(Base.classes, table)
-
-
-# def get_data_by_id(id):
-#     pk_name = inspect(test).mapper.primary_key[0].name
-#     pk_column = getattr(test, pk_name)
-#     return jsonable_encoder(session.query(test).where(pk_column == id).all())
-
-# def get_data_by_id(id, table_name):
-#     t = make_catel(table_name, table_names)
-#     print(t)
-#     try:
-#         pk_name = inspect(t).mapper.primary_key[0].name
-#     except Exception as e:
-#         return jsonable_encoder("")
-#     pk_column = getattr(t, pk_name)
-#     return jsonable_encoder(session.query(t).where(pk_column == id).all())
-
-
-# if __name__ == "__main__":
-
 load_dotenv()
 
 DB_URL = os.environ.get('DB_URL')
 DB_USER = os.environ.get('DB_USER')
 DB_PASSWORD = os.environ.get('DB_PASSWORD')
-
-# DB_URL = open("/run/secret/DB_URL").readline().rstrip() if os.path.exists("/run/secret/DB_URL") else ""
-# DB_USER = open("/run/secret/DB_USER").readline().rstrip() if os.path.exists("/run/secret/DB_USER") else ""
-# DB_PASSWORD = open("/run/secret/DB_PASSWORD").readline().rstrip() if os.path.exists("/run/secret/DB_PASSWORD") else ""
 
 engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_URL}/db-3s")
 
@@ -101,36 +53,6 @@ def get_tables_for_schema(schema_name):
         if schema['schema'] == schema_name:
             return schema['tables']
     return []
-
-
-# def get_data_for_table(schema_name, table_name):
-#     try:
-#         Base.prepare(autoload_with=engine, schema=schema_name)
-#         # Get the class corresponding to the table
-#         table_class = getattr(Base.classes, table_name, None)
-#         if table_class:
-#             # Construct a query to fetch all data from the table
-#             query = session.query(table_class)
-#
-#             # Print the generated SQL query
-#             print("Generated SQL Query:", query)
-#
-#             # Fetch all data from the table
-#             data = query.all()
-#
-#             if data:
-#                 data_dicts = [row.__dict__ for row in data]
-#                 print(data_dicts)
-#                 return jsonable_encoder(data_dicts)
-#             else:
-#                 print(f"No data found in table '{table_name}' in schema '{schema_name}'.")
-#                 return []
-#         else:
-#             print(f"Table '{table_name}' not found in schema '{schema_name}'.")
-#             return []
-#     except Exception as e:
-#         print(f"Error fetching data from table '{table_name}' in schema '{schema_name}': {e}")
-#         return []
 
 
 def get_data_for_table(schema_name, table_name):
