@@ -68,8 +68,8 @@ jobs:
         uses: azure/docker-login@v2
         with:
           login-server: 3sgrnd133registry.azurecr.io
-          username: ${{ secrets.GRND3S133CONTAINERAPI_REGISTRY_USERNAME }}
-          password: ${{ secrets.GRND3S133CONTAINERAPI_REGISTRY_PASSWORD }}
+          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
 
       - name: Build and push
         uses: docker/build-push-action@v5
