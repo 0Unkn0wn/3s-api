@@ -1,5 +1,5 @@
-from fastapi import Query, HTTPException, APIRouter
-from typing import Optional, Any
+from fastapi import Query, HTTPException, APIRouter, Body
+from typing import Optional, Any, List, Dict
 import app.db as db
 
 router = APIRouter()
@@ -49,4 +49,17 @@ async def get_single_item(
         if not str(result):
             raise HTTPException(status_code=404, detail=f"Tabel {table_name} not found")
         raise HTTPException(status_code=404, detail=f"Item with ID {item_id} not found")
+    return result
+
+
+@router.put("/data/schemas/{schema_name}/tables/{table_name}", status_code=200)
+async def put_single_item(
+        *,
+        schema_name: str,
+        table_name: str,
+        data: List[Dict[str, Any]] = Body(...)
+) -> Any:
+    result = db.add_data_to_table(schema_name, table_name, data)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"Failed to add data to table {table_name}")
     return result

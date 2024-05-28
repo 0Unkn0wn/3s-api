@@ -5,7 +5,6 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import MetaData, create_engine, inspect, select, insert, update
 from sqlalchemy.dialects.postgresql import Any
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.automap import automap_base
 from fastapi.encoders import jsonable_encoder
@@ -142,26 +141,23 @@ def get_row_by_primary_key(schema_name, table_name, primary_key_value):
         return []
 
 
-def upload_data(data):
+async def add_data_to_table(schema_name: str, table_name: str, data: List[Dict[str, Any]]):
     try:
-        for item in schemas_and_tables:
-            item_str = str(item)  # Convert to string
-            schema_name, table_name = item_str.split('.')
-            table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
-
-            # Create a list of dictionaries containing data for this table
-            table_data = [row for row in data if row['table'] == table_name]
-
-            if table_data:
-                with engine.connect() as connection:
-                    # Begin a transaction
-                    with connection.begin():
-                        # Insert data into the table
-                        connection.execute(insert(table), table_data)
-
-                print(f"Data uploaded successfully to '{schema_name}.{table_name}'.")
-            else:
-                print(f"No data provided for '{schema_name}.{table_name}'.")
+        table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
     except Exception as e:
-        print(f"Error uploading data: {e}")
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found in schema '{schema_name}'.")
+
+    for item in data:
+        for key in item.keys():
+            if key not in table.columns.keys():
+                raise HTTPException(status_code=400, detail=f"Column '{key}' not found in table '{table_name}'.")
+
+    try:
+        with engine.connect() as connection:
+            connection.execute(table.insert(), data)
+        return {"message": "Data added successfully"}
+    except Exception as e:
+        print(f"Error adding data to table '{table_name}': {e}")
+        return []
+
 
