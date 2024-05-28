@@ -20,7 +20,7 @@ app = FastAPI(
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     },
-    openapi_url="api/v1/docs",
+    openapi_url="/api/v1/docs",
 )
 
 root_router = APIRouter()
