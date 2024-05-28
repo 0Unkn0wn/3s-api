@@ -141,7 +141,7 @@ def get_row_by_primary_key(schema_name, table_name, primary_key_value):
         return []
 
 
-async def add_data_to_table(schema_name: str, table_name: str, data: List[Dict[str, Any]]):
+def add_data_to_table(schema_name: str, table_name: str, data: List[Dict[str, Any]]):
     try:
         table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
     except Exception as e:
