@@ -46,41 +46,41 @@ jobs:
             "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
 
 
-  publish-to-azure-registry:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  # publish-to-azure-registry:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
 
-      - name: Extract metadata for the Docker image
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ secrets.AZURE_REGISTRY_SERVER }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'v0.2') }}
-            type=sha,prefix={{branch}}-,suffix=-{{date 'X'}}
+  #     - name: Extract metadata for the Docker image
+  #       id: meta
+  #       uses: docker/metadata-action@v4
+  #       with:
+  #         images: ${{ secrets.AZURE_REGISTRY_SERVER }}/${{ env.IMAGE_NAME }}
+  #         tags: |
+  #           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'v0.2') }}
+  #           type=sha,prefix={{branch}}-,suffix=-{{date 'X'}}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Login to GH container registry
-        uses: azure/docker-login@v2
-        with:
-          login-server: ${{ secrets.AZURE_REGISTRY_SERVER }}
-          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
-          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+  #     - name: Login to GH container registry
+  #       uses: azure/docker-login@v2
+  #       with:
+  #         login-server: ${{ secrets.AZURE_REGISTRY_SERVER }}
+  #         username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+  #         password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}       
-          secrets: |
-            "DB_URL=${{ secrets.DB_URL }}"
-            "DB_USER=${{ secrets.DB_USER }}"
-            "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
+  #     - name: Build and push
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         context: .
+  #         push: true
+  #         tags: ${{ steps.meta.outputs.tags }}
+  #         labels: ${{ steps.meta.outputs.labels }}       
+  #         secrets: |
+  #           "DB_URL=${{ secrets.DB_URL }}"
+  #           "DB_USER=${{ secrets.DB_USER }}"
+  #           "DB_PASSWORD=${{ secrets.DB_PASSWORD }}"
 
 
