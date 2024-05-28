@@ -20,7 +20,6 @@ app = FastAPI(
         "name": "Apache 2.0",
         "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
     },
-    openapi_url="/api/v1/docs",
 )
 
 root_router = APIRouter()
@@ -31,5 +30,5 @@ async def root():
     return {"status": "OK"}
 
 
-app.include_router(ground_data.router, prefix="/ground_data", tags=["ground_data"])
+app.include_router(ground_data.router, prefix="/api/v1", tags=["ground_data"])
 app.include_router(root_router, tags=["root"])
