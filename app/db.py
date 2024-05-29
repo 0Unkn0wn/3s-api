@@ -145,13 +145,13 @@ def add_data_to_table(schema_name: str, table_name: str, data: List[Dict[str, An
     try:
         table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found in schema '{schema_name}'.")
-
+        print(f"Table '{table_name}' not found in schema '{schema_name}': {e}")
+        return []
     for item in data:
         for key in item.keys():
             if key not in table.columns.keys():
-                raise HTTPException(status_code=400, detail=f"Column '{key}' not found in table '{table_name}'.")
-
+                print(f"Column '{key}' not found in table '{table_name}': {item[key]}")
+                return []
     try:
         with engine.connect() as connection:
             connection.execute(table.insert(), data)
