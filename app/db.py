@@ -71,7 +71,7 @@ def get_data_for_table(schema_name, table_name):
         if rows:
             # Convert each row to a dictionary
             data_dicts = [dict(zip(columns, row)) for row in rows]
-            return jsonable_encoder(data_dicts)
+            return {table_name: jsonable_encoder(data_dicts)}
         else:
             print(f"No data found in table '{table_name}' in schema '{schema_name}'.")
             return []
@@ -132,7 +132,7 @@ def get_row_by_primary_key(schema_name, table_name, primary_key_value):
                 for i, col in enumerate(table.columns):
                     row_dict[col.name] = row[i]  # Access column value by index
                 rows_dicts.append(row_dict)
-            return jsonable_encoder(rows_dicts)
+            return {table_name: jsonable_encoder(rows_dicts)}
         else:
             print(f"No row found with primary key '{primary_key_value}' in table '{table_name}'.")
             return []
