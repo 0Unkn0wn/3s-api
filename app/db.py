@@ -50,7 +50,7 @@ def get_all_schemas():
 def get_tables_for_schema(schema_name):
     for schema in schemas_and_tables:
         if schema['schema'] == schema_name:
-            return schema['tables']
+            return {schema_name: jsonable_encoder(schema['tables'])}
     return []
 
 
