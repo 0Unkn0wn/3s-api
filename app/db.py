@@ -1,5 +1,5 @@
 import os
-from typing import Type
+from typing import Type, Union
 import sqlalchemy as sa
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -141,19 +141,21 @@ def get_row_by_primary_key(schema_name, table_name, primary_key_value):
         return []
 
 
-def add_data_to_table(schema_name: str, table_name: str, data: List[Dict[str, Any]]):
+def add_data_to_table(schema_name: str, table_name: str, data: Union[Dict[str, Any], List[Dict[str, Any]]]):
     try:
         table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
     except Exception as e:
-        print(f"Table '{table_name}' not found in schema '{schema_name}': {e}")
-        return []
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found in schema '{schema_name}': {e}")
+
+    # If the input data is a dictionary, convert it to a list of dictionaries
+    if isinstance(data, dict):
+        data = [data]
 
     # Validate the input data against the table columns
     for item in data:
         for key in item.keys():
             if key not in table.columns.keys():
-                print(f"Column '{key}' not found in table '{table_name}': {item[key]}")
-                return []
+                raise HTTPException(status_code=400, detail=f"Column '{key}' not found in table '{table_name}'.")
 
     try:
         with engine.connect() as connection:
@@ -161,14 +163,11 @@ def add_data_to_table(schema_name: str, table_name: str, data: List[Dict[str, An
             try:
                 connection.execute(table.insert(), data)
                 trans.commit()  # Commit the transaction
-                print(f"Data successfully inserted into {schema_name}.{table_name}: {data}")
             except Exception as e:
                 trans.rollback()  # Rollback the transaction on error
-                print(f"Error inserting data: {e}")
-                return []
+                raise HTTPException(status_code=500, detail=f"Error inserting data: {e}")
         return {"message": "Data added successfully"}
     except Exception as e:
-        print(f"Error adding data to table '{table_name}': {e}")
-        return []
+        raise HTTPException(status_code=500, detail=f"Error adding data to table '{table_name}': {e}")
 
 
