@@ -147,14 +147,25 @@ def add_data_to_table(schema_name: str, table_name: str, data: List[Dict[str, An
     except Exception as e:
         print(f"Table '{table_name}' not found in schema '{schema_name}': {e}")
         return []
+
+    # Validate the input data against the table columns
     for item in data:
         for key in item.keys():
             if key not in table.columns.keys():
                 print(f"Column '{key}' not found in table '{table_name}': {item[key]}")
                 return []
+
     try:
         with engine.connect() as connection:
-            connection.execute(table.insert(), data)
+            trans = connection.begin()  # Begin a new transaction
+            try:
+                connection.execute(table.insert(), data)
+                trans.commit()  # Commit the transaction
+                print(f"Data successfully inserted into {schema_name}.{table_name}: {data}")
+            except Exception as e:
+                trans.rollback()  # Rollback the transaction on error
+                print(f"Error inserting data: {e}")
+                return []
         return {"message": "Data added successfully"}
     except Exception as e:
         print(f"Error adding data to table '{table_name}': {e}")
