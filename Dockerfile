@@ -18,6 +18,7 @@ RUN --mount=type=secret,id=DB_URL \
   export DB_URL=$(cat /run/secrets/DB_URL) && \
   export DB_USER=$(cat /run/secrets/DB_USER) && \
   export DB_PASSWORD=$(cat /run/secrets/DB_PASSWORD) && \
+  export JWT_SECRET_KEY=$(cat /run/secrets/JWT_SECRET_KEY) && \
   python genenv.py 
 
 
