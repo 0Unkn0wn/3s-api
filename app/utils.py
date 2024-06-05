@@ -4,12 +4,12 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import Table, select
 from sqlalchemy.orm import Session
 
-from db import get_db, metadata, engine
-from security import ALGORITHM, JWT_SECRET_KEY
+from app.db import get_db, metadata, engine
+from app.security import ALGORITHM, JWT_SECRET_KEY
 
 from jose import jwt
 from pydantic import ValidationError
-from schemas.user import TokenPayload, SystemUser
+from app.schemas.user import TokenPayload, SystemUser
 
 reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
