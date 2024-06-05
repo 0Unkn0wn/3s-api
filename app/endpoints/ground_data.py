@@ -1,67 +1,47 @@
-from fastapi import Query, HTTPException, APIRouter, Body
+from fastapi import Query, HTTPException, APIRouter, Body, Depends
 from typing import Optional, Any, List, Dict, Union
-import app.db as db
 
+from sqlalchemy.orm import Session
+
+from app.db import get_db, get_all_schemas, get_tables_for_schema, get_data_for_table, add_data_to_table
+
+from app.schemas.response_models import SchemaResponse, TablesResponse, TableDataResponse, AddDataResponse
 router = APIRouter()
 
 
-@router.get("/data/schemas", status_code=200)
-async def get_schema_list() -> Any:
-    result = db.get_all_schemas()
-    if not result:
-        raise HTTPException(status_code=404, detail=f"Schema list empty no schemas in this database")
-    return result
+@router.get("/schemas", response_model=SchemaResponse)
+def read_schemas():
+    schemas = get_all_schemas()
+    if "message" in schemas:
+        raise HTTPException(status_code=404, detail=schemas["message"])
+    return schemas
 
 
-@router.get("/data/schemas/{schema_name}/tables", status_code=200)
-async def get_table_list(
-        schema_name: str,
+
+@router.get("/schemas/{schema_name}/tables", response_model=TablesResponse)
+def read_tables_for_schema(schema_name: str):
+    tables = get_tables_for_schema(schema_name)
+    if "message" in tables:
+        raise HTTPException(status_code=404, detail=tables["message"])
+    return tables
+
+
+@router.get("/schemas/{schema_name}/tables/{table_name}/data", response_model=TableDataResponse)
+def read_data_for_table(
+    schema_name: str,
+    table_name: str,
+    primary_key_value: Any = None,
+    limit: int = Query(None, description="Limit the number of rows returned"),
+    db_: Session = Depends(get_db),
 ) -> Any:
-    result = db.get_tables_for_schema(schema_name)
-    if not result:
-        raise HTTPException(status_code=404, detail=f"Table list empty no tables in this schema {schema_name}")
-    return result
+    return get_data_for_table(db_, schema_name, table_name, primary_key_value, limit)
 
 
-@router.get("/data/schemas/{schema_name}/tables/{table_name}", status_code=200)
-async def get_all_data(
-        schema_name: str,
-        table_name: str,
-        limit: Optional[int] = Query(None, gt=0, le=100),
-) -> Any:
-    result = db.get_data_for_table(schema_name, table_name)
-    if not result:
-        raise HTTPException(status_code=404, detail=f"Table empty no data in this table {table_name}")
-    if limit:
-        result = result[:limit]
-    return result
-
-
-@router.get("/data/schemas/{schema_name}/tables/{table_name}/items/{item_id}", status_code=200)
-async def get_single_item(
-        *,
-        schema_name: str,
-        table_name: str,
-        item_id: int,
-) -> Any:
-    result = db.get_row_by_primary_key(schema_name, table_name, item_id)
-    if not result:
-        if not str(result):
-            raise HTTPException(status_code=404, detail=f"Tabel {table_name} not found")
-        raise HTTPException(status_code=404, detail=f"Item with ID {item_id} not found")
-    return result
-
-
-@router.put("/data/schemas/{schema_name}/tables/{table_name}", status_code=200)
-async def add_data(
-        *,
-        schema_name: str,
-        table_name: str,
-        data: Union[Dict[str, Any], List[Dict[str, Any]]] = Body(...)
-) -> Any:
-    try:
-        return db.add_data_to_table(schema_name, table_name, data)
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@router.post("/schemas/{schema_name}/tables/{table_name}/data", response_model=AddDataResponse)
+def add_data(
+    schema_name: str,
+    table_name: str,
+    data: Union[Dict[str, Any], List[Dict[str, Any]]],
+    db_: Session = Depends(get_db),
+):
+    return add_data_to_table(db_, schema_name, table_name, data)

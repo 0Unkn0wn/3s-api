@@ -1,16 +1,12 @@
 import os
-from typing import Type, Union
-import sqlalchemy as sa
-from fastapi import HTTPException
-from pydantic import BaseModel
-from sqlalchemy import MetaData, create_engine, inspect, select, insert, update
-from sqlalchemy.dialects.postgresql import Any
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.ext.automap import automap_base
-from fastapi.encoders import jsonable_encoder
-from sqlalchemy.testing.schema import Table
-from typing import List, Type, Any, Dict
+from typing import List, Any, Dict
+from typing import Union, Generator
 from dotenv import load_dotenv
+from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import MetaData, create_engine, inspect, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.testing.schema import Table
 
 load_dotenv()
 
@@ -20,20 +16,13 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 
 engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_URL}/db-3s")
 
-# Reflect all tables from the database
 metadata = MetaData()
 metadata.reflect(bind=engine)
+inspector = inspect(engine)
 
-inspector = sa.inspect(engine)
+SessionLocal = sessionmaker(bind=engine)
 
-# Get all schemas
 schemas = inspector.get_schema_names()
-
-session = Session(engine)
-
-Base = automap_base(metadata=metadata)
-
-# Get all tables for each schema
 schemas_and_tables = [
     {
         'schema': schema,
@@ -43,105 +32,84 @@ schemas_and_tables = [
 ]
 
 
-def get_all_schemas():
-    return [schema['schema'] for schema in schemas_and_tables]
+def get_db() -> Generator:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-def get_tables_for_schema(schema_name):
+def get_all_schemas() -> dict[str, Any]:
+    if not schemas_and_tables:
+        return {"message": "No schemas in this database."}
+    return {"schemas": jsonable_encoder([schema['schema'] for schema in schemas_and_tables])}
+
+
+def get_tables_for_schema(schema_name: str) -> dict[Any, Any] | list[Any]:
     for schema in schemas_and_tables:
         if schema['schema'] == schema_name:
-            return {schema_name: jsonable_encoder(schema['tables'])}
-    return []
+            if not schema['tables']:
+                return {"message": f"No tables for schema '{schema_name}'."}
+            return {"schema_name": schema_name, "tables": jsonable_encoder(schema['tables'])}
+    return {"message": f"Schema '{schema_name}' not found."}
 
 
-def get_data_for_table(schema_name, table_name):
-    try:
-        # Reflect the table directly from the database
-        table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
-        # Establish a connection
-        with engine.connect() as connection:
-            # Construct a select query to fetch all data from the table
-            query = table.select()
-
-            # Execute the query and fetch all rows
-            result = connection.execute(query)
-            rows = result.fetchall()
-            columns = result.keys()
-
-        if rows:
-            # Convert each row to a dictionary
-            data_dicts = [dict(zip(columns, row)) for row in rows]
-            return {table_name: jsonable_encoder(data_dicts)}
-        else:
-            print(f"No data found in table '{table_name}' in schema '{schema_name}'.")
-            return []
-    except Exception as e:
-        print(f"Error fetching data from table '{table_name}' in schema '{schema_name}': {e}")
-        return []
-
-
-def get_primary_key_column(table):
+def get_primary_key_column(table: Table) -> str:
     try:
         for column in table.columns:
             if column.primary_key:
                 return column.name
-        print(f"No primary key found for table '{table.name}'.")
         return None
     except Exception as e:
-        print(f"Error fetching primary key column for table '{table.name}': {e}")
-        return None
+        raise HTTPException(status_code=500, detail=f"Error fetching primary key column for table '{table.name}': {e}")
 
 
-def get_first_column_name(table):
+def get_first_column_name(table: Table) -> str:
     try:
         for column in table.columns:
             return column.name
-        print(f"No suitable column found for table '{table.name}'.")
         return None
     except Exception as e:
-        print(f"Error fetching first column name for table '{table.name}': {e}")
-        return None
+        raise HTTPException(status_code=500, detail=f"Error fetching first column name for table '{table.name}': {e}")
 
 
-def get_row_by_primary_key(schema_name, table_name, primary_key_value):
+def get_data_for_table(db: Session, schema_name: str, table_name: str, primary_key_value: Any = None,
+                       limit: int = None) -> Dict[str, Any]:
     try:
         table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
 
-        # Get the primary key column name
+        # Determine the column to filter by
         primary_key_column = get_primary_key_column(table)
+        filter_column = primary_key_column or get_first_column_name(table)
 
-        if not primary_key_column:
-            primary_key_column = get_first_column_name(table)
-            if not primary_key_column:
-                return []
-        print(primary_key_column)
-        # Create a session
-        with engine.connect() as connection:
-            # Construct a select query to fetch the row by primary key
-            query = select(table).where(getattr(table.c, primary_key_column) == primary_key_value)
+        if not filter_column:
+            raise HTTPException(status_code=500,
+                                detail=f"No primary key or suitable column found for table '{table_name}' "
+                                       f"in schema '{schema_name}'.")
 
-            # Execute the query and fetch the row
-            result = connection.execute(query)
-            rows = result.fetchall()
+        query = select(table)
+        if limit is not None:
+            query = query.limit(limit)
+        if primary_key_value:
+            query = query.where(getattr(table.c, filter_column) == primary_key_value)
+
+        result = db.execute(query)
+        rows = result.fetchall()
+        columns = result.keys()
 
         if rows:
-            # Convert the rows to dictionaries
-            rows_dicts = []
-            for row in rows:
-                row_dict = {}
-                for i, col in enumerate(table.columns):
-                    row_dict[col.name] = row[i]  # Access column value by index
-                rows_dicts.append(row_dict)
-            return {table_name: jsonable_encoder(rows_dicts)}
+            data_dicts = [dict(zip(columns, row)) for row in rows]
+            return {"table_name": table_name, "data": jsonable_encoder(data_dicts)}
         else:
-            print(f"No row found with primary key '{primary_key_value}' in table '{table_name}'.")
-            return []
+            return {"table_name": table_name, "data": []}
     except Exception as e:
-        print(f"Error fetching row with primary key '{primary_key_value}' from table '{table_name}': {e}")
-        return []
+        raise HTTPException(status_code=500,
+                            detail=f"Error fetching data from table '{table_name}' in schema '{schema_name}': {e}")
 
 
-def add_data_to_table(schema_name: str, table_name: str, data: Union[Dict[str, Any], List[Dict[str, Any]]]):
+def add_data_to_table(db: Session, schema_name: str, table_name: str,
+                      data: Union[Dict[str, Any], List[Dict[str, Any]]]):
     try:
         table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
     except Exception as e:
@@ -158,14 +126,13 @@ def add_data_to_table(schema_name: str, table_name: str, data: Union[Dict[str, A
                 raise HTTPException(status_code=400, detail=f"Column '{key}' not found in table '{table_name}'.")
 
     try:
-        with engine.connect() as connection:
-            trans = connection.begin()  # Begin a new transaction
-            try:
-                connection.execute(table.insert(), data)
-                trans.commit()  # Commit the transaction
-            except Exception as e:
-                trans.rollback()  # Rollback the transaction on error
-                raise HTTPException(status_code=500, detail=f"Error inserting data: {e}")
+        trans = db.begin()  # Begin a new transaction
+        try:
+            db.execute(table.insert(), data)
+            trans.commit()  # Commit the transaction
+        except Exception as e:
+            trans.rollback()  # Rollback the transaction on error
+            raise HTTPException(status_code=500, detail=f"Error inserting data: {e}")
         return {"message": "Data added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding data to table '{table_name}': {e}")
