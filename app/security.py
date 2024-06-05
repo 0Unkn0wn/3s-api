@@ -9,7 +9,7 @@ load_dotenv()
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
 ALGORITHM = "HS256"
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')  # should be kept secret
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
