@@ -70,6 +70,8 @@ def get_all_schemas() -> dict[str, Any]:
 
 
 def get_tables_for_schema(schema_name: str) -> dict[Any, Any] | list[Any]:
+    if schema_name not in public_schemas:
+        raise HTTPException(status_code=403, detail=f"Access to schema '{schema_name}' is forbidden.")
     for schema in public_schemas_and_tables:
         if schema['schema'] == schema_name:
             if not schema['tables']:
