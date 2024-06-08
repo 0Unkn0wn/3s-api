@@ -46,7 +46,7 @@ def get_visible_schemas() -> List[str]:
         ground_data_schema_table = Table('ground_data_schema_dictionary', metadata, autoload_with=engine, schema='public')
         query = select(ground_data_schema_table.c.schema_name)
         result = db.execute(query)
-        visible_schemas = [row['schema_name'] for row in result.fetchall()]
+        visible_schemas = [row['schema_name'] for row in result.mappings().all()]
         db.close()
         return visible_schemas
     except Exception as e:
