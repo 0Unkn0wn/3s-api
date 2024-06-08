@@ -22,13 +22,13 @@ inspector = inspect(engine)
 
 SessionLocal = sessionmaker(bind=engine)
 
-schemas = inspector.get_schema_names()
-schemas_and_tables = [
+all_schemas = inspector.get_schema_names()
+all_schemas_and_tables = [
     {
         'schema': schema,
         'tables': inspector.get_table_names(schema=schema)
     }
-    for schema in schemas
+    for schema in all_schemas
 ]
 
 
@@ -40,14 +40,35 @@ def get_db() -> Generator:
         db.close()
 
 
+def get_public_schemas(db: Session) -> List[str]:
+    try:
+        ground_data_schema_table = Table('ground_data_schema_dictionary', metadata, autoload_with=engine, schema='public')
+        query = select(ground_data_schema_table.c.schema_name)
+        result = db.execute(query)
+        visible_schemas = [row['schema_name'] for row in result.fetchall()]
+        return visible_schemas
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching visible schemas: {e}")
+
+
+public_schemas = get_public_schemas(get_db())
+public_schemas_and_tables = [
+    {
+        'schema': schema,
+        'tables': inspector.get_table_names(schema=schema)
+    }
+    for schema in public_schemas
+]
+
+
 def get_all_schemas() -> dict[str, Any]:
-    if not schemas_and_tables:
+    if not public_schemas_and_tables:
         return {"message": "No schemas in this database."}
-    return {"schemas": jsonable_encoder([schema['schema'] for schema in schemas_and_tables])}
+    return {"schemas": jsonable_encoder([schema['schema'] for schema in public_schemas_and_tables])}
 
 
 def get_tables_for_schema(schema_name: str) -> dict[Any, Any] | list[Any]:
-    for schema in schemas_and_tables:
+    for schema in public_schemas_and_tables:
         if schema['schema'] == schema_name:
             if not schema['tables']:
                 return {"message": f"No tables for schema '{schema_name}'."}
@@ -76,6 +97,8 @@ def get_first_column_name(table: Table) -> str:
 
 def get_data_for_table(db: Session, schema_name: str, table_name: str, primary_key_value: Any = None,
                        limit: int = None) -> Dict[str, Any]:
+    if schema_name not in public_schemas:
+        raise HTTPException(status_code=403, detail=f"Access to schema '{schema_name}' is forbidden.")
     try:
         table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
 
@@ -110,6 +133,8 @@ def get_data_for_table(db: Session, schema_name: str, table_name: str, primary_k
 
 def add_data_to_table(db: Session, schema_name: str, table_name: str,
                       data: Union[Dict[str, Any], List[Dict[str, Any]]]):
+    if schema_name not in public_schemas:
+        raise HTTPException(status_code=403, detail=f"Access to schema '{schema_name}' is forbidden.")
     try:
         table = Table(table_name, metadata, autoload_with=engine, schema=schema_name)
     except Exception as e:
