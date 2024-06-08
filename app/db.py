@@ -40,18 +40,20 @@ def get_db() -> Generator:
         db.close()
 
 
-def get_public_schemas(db: Session) -> List[str]:
+def get_visible_schemas() -> List[str]:
     try:
+        db = SessionLocal()
         ground_data_schema_table = Table('ground_data_schema_dictionary', metadata, autoload_with=engine, schema='public')
         query = select(ground_data_schema_table.c.schema_name)
         result = db.execute(query)
         visible_schemas = [row['schema_name'] for row in result.fetchall()]
+        db.close()
         return visible_schemas
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching visible schemas: {e}")
 
 
-public_schemas = get_public_schemas(get_db())
+public_schemas = get_visible_schemas()
 public_schemas_and_tables = [
     {
         'schema': schema,
