@@ -143,16 +143,12 @@ def add_data_to_table(
             if key not in table.columns.keys():
                 raise HTTPException(status_code=400, detail=f"Column '{key}' not found in table '{table_name}'.")
     try:
-        trans = db.begin()
-        try:
+        with db.begin():  # Begin a new transaction
             db.execute(table.insert(), data)
-            trans.commit()
-        except Exception as e:
-            trans.rollback()
-            raise HTTPException(status_code=500, detail=f"Error inserting data: {e}")
-        return {"message": "Data added successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error adding data to table '{table_name}': {e}")
+        db.rollback()  # Rollback the transaction on error
+        raise HTTPException(status_code=500, detail=f"Error inserting data into table {table}: {e}")
+    return {"message": "Data added successfully"}
 
 
 # Helper function to map string types to SQLAlchemy types
