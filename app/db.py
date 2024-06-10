@@ -4,7 +4,7 @@ from typing import Union, Generator
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import MetaData, create_engine, inspect, select
+from sqlalchemy import MetaData, create_engine, inspect, select, Column
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.testing.schema import Table
 
@@ -151,3 +151,19 @@ def add_data_to_table(
         return {"message": "Data added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding data to table '{table_name}': {e}")
+
+
+def create_table(table_name: str, columns: Dict[str, Any], schema_name: str, db: Session):
+    # Define the table with the specified columns
+    table = Table(
+        table_name,
+        metadata,
+        *(Column(col_name, col_type) for col_name, col_type in columns.items()),
+        schema=schema_name
+    )
+
+    try:
+        # Create the table in the database
+        table.create(bind=db.get_bind(), checkfirst=True)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
