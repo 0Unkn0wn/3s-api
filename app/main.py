@@ -32,6 +32,7 @@ async def root():
 
 
 app.include_router(ground_data.router, prefix="/api/v1", tags=["ground_data"])
-app.include_router(user_data.router, prefix="/api/v1/user-data", tags=["user_data"])
+app.include_router(user_data.router, prefix="/api/v1/user-data", tags=["user-data"],
+                   dependencies=[Depends(get_current_user)])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(root_router, tags=["root"])
