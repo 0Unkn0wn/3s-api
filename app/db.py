@@ -36,21 +36,29 @@ def get_public_schemas(db: Session) -> List[str]:
                                          schema='public')
         query = select(ground_data_schema_table.c.schema_name)
         result = db.execute(query)
-        visible_schemas = [row['schema_name'] for row in result.mappings().all()]  # Access by column name
-        return visible_schemas
+        public_schemas = [row['schema_name'] for row in result.mappings().all()]  # Access by column name
+        return public_schemas
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching visible schemas: {e}")
+        raise HTTPException(status_code=500, detail=f"Error fetching public schemas: {e}")
 
 
-def get_schemas_and_tables(visible_schemas: List[str]) -> List[Dict[str, Any]]:
+def get_schemas_and_tables(schema_list: List[str]) -> List[Dict[str, Any]]:
     inspector = inspect(engine)
     return [
         {
             'schema': schema,
             'tables': inspector.get_table_names(schema=schema)
         }
-        for schema in visible_schemas
+        for schema in schema_list
     ]
+
+
+def validate_schema_access(schema_name: str, schema_list: List[str]):
+    inspector = inspect(engine)
+    if schema_name not in inspector.get_schema_names():
+        raise HTTPException(status_code=404, detail=f"Schema '{schema_name}' not found.")
+    if schema_name not in schema_list:
+        raise HTTPException(status_code=403, detail=f"Access to schema '{schema_name}' is forbidden.")
 
 
 def get_tables_for_schema(schema_name: str, schemas_and_tables: List[Dict[str, Any]]) -> dict[Any, Any] | list[Any]:
