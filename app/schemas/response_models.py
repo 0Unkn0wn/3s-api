@@ -20,6 +20,10 @@ class AddDataResponse(BaseModel):
     message: str
 
 
+class UpdateDataResponse(BaseModel):
+    message: str
+
+
 class RemoveDataResponse(BaseModel):
     message: str
 

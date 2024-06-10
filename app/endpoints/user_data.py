@@ -4,11 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_db, create_table_for_schema, get_schemas_and_tables, \
-    get_tables_for_schema, get_data_for_table, get_table_structure, add_data_to_table, delete_table
+    get_tables_for_schema, get_data_for_table, get_table_structure, add_data_to_table, delete_table, update_row
 from app.schemas.response_models import TablesResponse, TableDataResponse, TableStructureResponse, AddDataResponse, \
-    RemoveDataResponse
+    RemoveDataResponse, UpdateDataResponse
 from app.schemas.user import SystemUser
-from app.schemas.request_models import TableCreateRequest
+from app.schemas.request_models import TableCreateRequest, RowUpdateRequest
 from app.utils import get_current_user
 
 router = APIRouter()
@@ -65,6 +65,17 @@ def add_table_data(
 ):
     schema_name = f"user_own_data_{current_user.user_id}"
     return add_data_to_table(db, schema_name, table_name, data)
+
+
+@router.patch("/tables/{table_name}/rows", response_model=UpdateDataResponse)
+def update_row_endpoint(
+    table_name: str,
+    request: RowUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: SystemUser = Depends(get_current_user)
+):
+    schema_name = f"user_own_data_{current_user.user_id}"
+    return update_row(db, schema_name, table_name, request.row_id, request.update_data)
 
 
 @router.delete("/tables/{table_name}", response_model=RemoveDataResponse)

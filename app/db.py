@@ -4,7 +4,7 @@ from typing import Union, Generator
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import MetaData, create_engine, inspect, select, Column, Integer, String, Float, Date, Boolean
+from sqlalchemy import MetaData, create_engine, inspect, select, Column, Integer, String, Float, Date, Boolean, update
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.testing.schema import Table
 
@@ -220,17 +220,54 @@ def get_table_structure(schema_name: str, table_name: str) -> TableStructureResp
     return TableStructureResponse(table_name=table_name, columns=columns_info, primary_key=primary_key)
 
 
+def update_row(
+    db: Session,
+    schema_name: str,
+    table_name: str,
+    row_id: Any,
+    update_data: Dict[str, Any]
+):
+    try:
+        table = Table(table_name, metadata, autoload_with=db.bind, schema=schema_name)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found in schema '{schema_name}'. "
+                                                    f"Error: {e}")
+
+    primary_key_column = get_primary_key_column(table)
+    filter_column = primary_key_column or get_first_column_name(table)
+    if not filter_column:
+        raise HTTPException(status_code=500,
+                            detail=f"No primary key or suitable column found "
+                                   f"for table '{table_name}' in schema '{schema_name}'.")
+
+    try:
+        stmt = (
+            update(table)
+            .where(getattr(table.c, filter_column) == row_id)
+            .values(update_data)
+        )
+        db.execute(stmt)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error updating row in table '{table_name}': {e}")
+
+    return {"message": f"Row with ID '{row_id}' updated successfully in table '{table_name}'."}
+
+
 def delete_table(db: Session, schema_name: str, table_name: str):
     try:
         table = Table(table_name, metadata, autoload_with=db.bind, schema=schema_name)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found in schema '{schema_name}'. Error: {e}")
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found"
+                                                    f"in schema '{schema_name}'. Error: {e}")
 
     try:
         table.drop(db.bind)
         db.commit()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error deleting table '{table_name}' in schema '{schema_name}': {e}")
+        raise HTTPException(status_code=500, detail=f"Error deleting table '{table_name}'"
+                                                    f"in schema '{schema_name}': {e}")
 
     return {"message": f"Table '{table_name}' deleted successfully"}
