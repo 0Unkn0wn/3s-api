@@ -158,8 +158,11 @@ def map_column_type(col_type: str):
     if col_type.startswith("Integer"):
         return Integer
     elif col_type.startswith("String"):
-        length = int(col_type.split("(")[1].split(")")[0])
-        return String(length)
+        if "(" in col_type and ")" in col_type:
+            length = int(col_type.split("(")[1].split(")")[0])
+            return String(length)
+        else:
+            return String
     elif col_type.startswith("Float"):
         return Float
     elif col_type.startswith("Date"):
