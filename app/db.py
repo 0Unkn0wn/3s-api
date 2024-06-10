@@ -153,7 +153,7 @@ def add_data_to_table(
         raise HTTPException(status_code=500, detail=f"Error adding data to table '{table_name}': {e}")
 
 
-def create_table(table_name: str, columns: Dict[str, Any], schema_name: str, db: Session):
+def create_table_for_schema(table_name: str, columns: Dict[str, Any], schema_name: str, db: Session):
     # Define the table with the specified columns
     table = Table(
         table_name,
