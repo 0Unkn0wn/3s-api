@@ -138,16 +138,21 @@ def add_data_to_table(
                                                     f"Error: {e}")
     if isinstance(data, dict):
         data = [data]
+
     for item in data:
         for key in item.keys():
             if key not in table.columns.keys():
                 raise HTTPException(status_code=400, detail=f"Column '{key}' not found in table '{table_name}'.")
+
     try:
-        with db.begin():  # Begin a new transaction
-            db.execute(table.insert(), data)
+        db.begin()  # Begin a new transaction
+        db.execute(table.insert(), data)
+        db.commit()  # Commit the transaction
     except Exception as e:
         db.rollback()  # Rollback the transaction on error
         raise HTTPException(status_code=500, detail=f"Error inserting data into table {table}: {e}")
+    finally:
+        db.close()  # Ensure the session is closed
     return {"message": "Data added successfully"}
 
 
