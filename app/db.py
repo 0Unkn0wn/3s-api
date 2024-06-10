@@ -4,7 +4,7 @@ from typing import Union, Generator
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import MetaData, create_engine, inspect, select, Column
+from sqlalchemy import MetaData, create_engine, inspect, select, Column, Integer, String, Float, Date, Boolean
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.testing.schema import Table
 
@@ -153,9 +153,26 @@ def add_data_to_table(
         raise HTTPException(status_code=500, detail=f"Error adding data to table '{table_name}': {e}")
 
 
+# Helper function to map string types to SQLAlchemy types
+def map_column_type(col_type: str):
+    if col_type.startswith("Integer"):
+        return Integer
+    elif col_type.startswith("String"):
+        length = int(col_type.split("(")[1].split(")")[0])
+        return String(length)
+    elif col_type.startswith("Float"):
+        return Float
+    elif col_type.startswith("Date"):
+        return Date
+    elif col_type.startswith("Boolean"):
+        return Boolean
+    else:
+        raise ValueError(f"Unsupported column type: {col_type}")
+
+
 def create_table_for_schema(table_name: str, columns: Dict[str, Any], schema_name: str, db: Session):
     # Define the table with the specified columns
-    table_columns = [Column(col_name, col_type) for col_name, col_type in columns.items()]
+    table_columns = [Column(col_name, map_column_type(col_type)) for col_name, col_type in columns.items()]
 
     table = Table(
         table_name,
