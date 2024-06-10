@@ -8,6 +8,8 @@ from sqlalchemy import MetaData, create_engine, inspect, select, Column, Integer
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.testing.schema import Table
 
+from app.schemas.response_models import TableStructureResponse
+
 load_dotenv()
 
 DB_URL = os.environ.get('DB_URL')
@@ -201,3 +203,22 @@ def create_table_for_schema(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
 
+
+def get_table_structure(schema_name: str, table_name: str) -> TableStructureResponse:
+    inspector = inspect(engine)
+    columns_info = {}
+    primary_key = None
+
+    try:
+        columns = inspector.get_columns(table_name, schema=schema_name)
+        primary_keys = inspector.get_pk_constraint(table_name, schema=schema_name)['constrained_columns']
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching table structure: {e}")
+
+    for column in columns:
+        col_type = str(column['type'])
+        columns_info[column['name']] = col_type
+        if column['name'] in primary_keys:
+            primary_key = column['name']
+
+    return TableStructureResponse(table_name=table_name, columns=columns_info, primary_key=primary_key)
