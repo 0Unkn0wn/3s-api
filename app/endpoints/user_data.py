@@ -14,8 +14,8 @@ router = APIRouter()
 
 
 @router.get("/tables", response_model=TablesResponse)
-def read_tables_for_schema(schema_name: str, db: Session = Depends(get_db)):
-    validate_schema_access(schema_name, [schema_name])
+def read_tables_for_schema(current_user: SystemUser = Depends(get_current_user)):
+    schema_name = f"user_own_data_{current_user.user_id}"
     schemas_and_tables = get_schemas_and_tables([schema_name])
     tables = get_tables_for_schema(schema_name, schemas_and_tables)
     if "message" in tables:
