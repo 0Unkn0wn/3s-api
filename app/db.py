@@ -143,10 +143,8 @@ def add_data_to_table(
             if key not in table.columns.keys():
                 raise HTTPException(status_code=400, detail=f"Column '{key}' not found in table '{table_name}'.")
     try:
-        if db.in_transaction():
-            raise HTTPException(status_code=500, detail="A transaction is already begun on this Session.")
-        with db.begin_nested():
-            db.execute(table.insert(), data)
+        db.execute(table.insert(), data)
+        db.commit()
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error inserting data into table {table}: {e}")
