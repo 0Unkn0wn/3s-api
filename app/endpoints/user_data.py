@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db import get_db, create_table_for_schema, get_schemas_and_tables, \
-    get_tables_for_schema, get_data_for_table, get_table_structure, add_data_to_table
-from app.schemas.response_models import TablesResponse, TableDataResponse, TableStructureResponse, AddDataResponse
+    get_tables_for_schema, get_data_for_table, get_table_structure, add_data_to_table, delete_table
+from app.schemas.response_models import TablesResponse, TableDataResponse, TableStructureResponse, AddDataResponse, \
+    RemoveDataResponse
 from app.schemas.user import SystemUser
 from app.schemas.request_models import TableCreateRequest
 from app.utils import get_current_user
@@ -64,3 +65,13 @@ def add_table_data(
 ):
     schema_name = f"user_own_data_{current_user.user_id}"
     return add_data_to_table(db, schema_name, table_name, data)
+
+
+@router.delete("/tables/{table_name}", response_model=RemoveDataResponse)
+def delete_table_endpoint(
+        table_name: str,
+        db: Session = Depends(get_db),
+        current_user: SystemUser = Depends(get_current_user)
+):
+    schema_name = f"user_own_data_{current_user.user_id}"
+    return delete_table(db, schema_name, table_name)

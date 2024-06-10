@@ -218,3 +218,19 @@ def get_table_structure(schema_name: str, table_name: str) -> TableStructureResp
             primary_key = column['name']
 
     return TableStructureResponse(table_name=table_name, columns=columns_info, primary_key=primary_key)
+
+
+def delete_table(db: Session, schema_name: str, table_name: str):
+    try:
+        table = Table(table_name, metadata, autoload_with=db.bind, schema=schema_name)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found in schema '{schema_name}'. Error: {e}")
+
+    try:
+        table.drop(db.bind)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error deleting table '{table_name}' in schema '{schema_name}': {e}")
+
+    return {"message": f"Table '{table_name}' deleted successfully"}

@@ -20,6 +20,10 @@ class AddDataResponse(BaseModel):
     message: str
 
 
+class RemoveDataResponse(BaseModel):
+    message: str
+
+
 class TableStructureResponse(BaseModel):
     table_name: str
     columns: Dict[str, str]
