@@ -1,6 +1,6 @@
 from fastapi import HTTPException, APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select, Table
+from sqlalchemy import select, Table, DDL
 from sqlalchemy.orm import Session
 
 from app.schemas.user import UserOut, UserAuth, SystemUser, TokenSchema
@@ -13,10 +13,8 @@ router = APIRouter()
 
 
 @router.post('/signup', summary="Create new user", response_model=UserOut)
-async def create_user(data: UserAuth, db: Session = Depends(get_db)):
+def create_user(data: UserAuth, db: Session = Depends(get_db)):
     table_user = Table('user', metadata, autoload_with=engine, schema='account')
-
-    # Check if user already exists
     existing_user_query = select(table_user).where(table_user.c.email == data.email)
     existing_user = db.execute(existing_user_query).fetchone()
 
@@ -56,9 +54,19 @@ async def create_user(data: UserAuth, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error inserting data: {e}")
 
-    # Retrieve and return the new user
-    new_user_query = select(table_user).where(table_user.c.email == data.email)
-    new_user = db.execute(new_user_query).fetchone()
+    try:
+        # Retrieve the new user to get the user_id
+        new_user_query = select(table_user).where(table_user.c.email == data.email)
+        new_user = db.execute(new_user_query).fetchone()
+
+        # Create a schema for the new user
+        schema_name = f"user_own_data_[{new_user.user_id}]"
+        create_schema_ddl = DDL(f"CREATE SCHEMA {schema_name}")
+        db.execute(create_schema_ddl)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error creating user schema: {e}")
 
     return UserOut(
         user_id=new_user.user_id,
@@ -69,11 +77,12 @@ async def create_user(data: UserAuth, db: Session = Depends(get_db)):
         phone_number=new_user.phone_number
     )
 
+
 @router.post('/login', summary="Create access and refresh tokens for user", response_model=TokenSchema)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     table = Table('user', metadata, autoload_with=engine, schema='account')
-    existing_user_query = select(table).where(table.c.email == form_data.username)
-    user = db.execute(existing_user_query).fetchone()
+    user_query = select(table).where(table.c.email == form_data.username)
+    user = db.execute(user_query).fetchone()
 
     if user is None:
         raise HTTPException(
