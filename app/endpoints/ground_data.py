@@ -4,10 +4,10 @@ from typing import Any, List, Dict, Union
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
-from app.db import get_db, get_schemas_and_tables, get_tables_for_schema, get_data_for_table, add_data_to_table, \
+from app.db import get_db, get_schemas_and_tables, get_tables_for_schema, get_data_for_table, \
     get_public_schemas
 
-from app.schemas.response_models import SchemaResponse, TablesResponse, TableDataResponse, AddDataResponse
+from app.schemas.response_models import SchemaResponse, TablesResponse, TableDataResponse
 router = APIRouter()
 
 
@@ -43,16 +43,3 @@ def get_table_data(
     if schema_name not in public_schemas:
         raise HTTPException(status_code=403, detail=f"Access to schema '{schema_name}' is forbidden.")
     return get_data_for_table(db, schema_name, table_name, primary_key_value, limit)
-
-
-@router.post("/schemas/{schema_name}/tables/{table_name}/data", response_model=AddDataResponse)
-def add_table_data(
-    schema_name: str,
-    table_name: str,
-    data: Union[Dict[str, Any], List[Dict[str, Any]]],
-    db: Session = Depends(get_db),
-):
-    public_schemas = get_public_schemas(db)
-    if schema_name not in public_schemas:
-        raise HTTPException(status_code=403, detail=f"Access to schema '{schema_name}' is forbidden.")
-    return add_data_to_table(db, schema_name, table_name, data)
