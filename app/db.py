@@ -155,10 +155,12 @@ def add_data_to_table(
 
 def create_table_for_schema(table_name: str, columns: Dict[str, Any], schema_name: str, db: Session):
     # Define the table with the specified columns
+    table_columns = [Column(col_name, col_type) for col_name, col_type in columns.items()]
+
     table = Table(
         table_name,
         metadata,
-        *(Column(col_name, col_type) for col_name, col_type in columns.items()),
+        *table_columns,
         schema=schema_name
     )
 
