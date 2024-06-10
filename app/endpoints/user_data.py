@@ -1,14 +1,26 @@
 from typing import Dict, Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.db import get_db, validate_schema_access, create_table_for_schema
+from app.db import get_db, validate_schema_access, create_table_for_schema, get_schemas_and_tables, \
+    get_tables_for_schema
+from app.schemas.response_models import TablesResponse
 from app.schemas.user import SystemUser
 from app.schemas.request_models import TableCreateRequest
 from app.utils import get_current_user
 
 router = APIRouter()
+
+
+@router.get("/tables", response_model=TablesResponse)
+def read_tables_for_schema(schema_name: str, db: Session = Depends(get_db)):
+    validate_schema_access(schema_name, [schema_name])
+    schemas_and_tables = get_schemas_and_tables([schema_name])
+    tables = get_tables_for_schema(schema_name, schemas_and_tables)
+    if "message" in tables:
+        raise HTTPException(status_code=404, detail=tables["message"])
+    return tables
 
 
 @router.post("/create_table/")
