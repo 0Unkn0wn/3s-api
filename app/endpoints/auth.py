@@ -60,7 +60,7 @@ def create_user(data: UserAuth, db: Session = Depends(get_db)):
         new_user = db.execute(new_user_query).fetchone()
 
         # Create a schema for the new user
-        schema_name = f"user_own_data_[{new_user.user_id}]"
+        schema_name = f"user_own_data_{new_user.user_id}"
         create_schema_ddl = DDL(f"CREATE SCHEMA {schema_name}")
         db.execute(create_schema_ddl)
         db.commit()
