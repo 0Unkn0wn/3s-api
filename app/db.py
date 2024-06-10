@@ -170,9 +170,20 @@ def map_column_type(col_type: str):
         raise ValueError(f"Unsupported column type: {col_type}")
 
 
-def create_table_for_schema(table_name: str, columns: Dict[str, Any], schema_name: str, db: Session):
+def create_table_for_schema(
+    db: Session,
+    schema_name: str,
+    table_name: str,
+    columns: Dict[str, Any],
+    primary_key: str = None
+):
     # Define the table with the specified columns
-    table_columns = [Column(col_name, map_column_type(col_type)) for col_name, col_type in columns.items()]
+    table_columns = []
+    for col_name, col_type in columns.items():
+        if col_name == primary_key:
+            table_columns.append(Column(col_name, map_column_type(col_type), primary_key=True))
+        else:
+            table_columns.append(Column(col_name, map_column_type(col_type)))
 
     table = Table(
         table_name,
@@ -186,3 +197,4 @@ def create_table_for_schema(table_name: str, columns: Dict[str, Any], schema_nam
         table.create(bind=db.get_bind(), checkfirst=True)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
+
