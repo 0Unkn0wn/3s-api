@@ -24,7 +24,7 @@ class UserOut(BaseModel):
     phone_number: Optional[str] = Field(None, description="Phone number")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SystemUser(UserOut):
