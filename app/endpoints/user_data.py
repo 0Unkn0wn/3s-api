@@ -14,7 +14,7 @@ from app.utils import get_current_user
 router = APIRouter()
 
 
-@router.post("/create_table/")
+@router.post("/tables")
 def create_table(
     request: TableCreateRequest,
     db: Session = Depends(get_db),
