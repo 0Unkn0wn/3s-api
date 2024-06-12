@@ -24,10 +24,7 @@ def read_tables_for_schema(schema_name: str, db: Session = Depends(get_db)):
     public_schemas = get_public_schemas(db)
     validate_schema_access(schema_name, public_schemas)
     schemas_and_tables = get_schemas_and_tables(public_schemas)
-    tables = get_tables_for_schema(schema_name, schemas_and_tables)
-    if "message" in tables:
-        raise HTTPException(status_code=404, detail=tables["message"])
-    return tables
+    return get_tables_for_schema(schema_name, schemas_and_tables)
 
 
 @router.get("/schemas/{schema_name}/tables/{table_name}/data", response_model=TableDataResponse)

@@ -67,9 +67,9 @@ def get_tables_for_schema(schema_name: str, schemas_and_tables: List[Dict[str, A
     for schema in schemas_and_tables:
         if schema['schema'] == schema_name:
             if not schema['tables']:
-                return {"message": f"No tables for schema '{schema_name}'."}
+                raise HTTPException(status_code=200, detail=f"No tables for schema '{schema_name}'.")
             return {"schema_name": schema_name, "tables": jsonable_encoder(schema['tables'])}
-    return {"message": f"Schema '{schema_name}' not found."}
+    raise HTTPException(status_code=404, detail=f"Schema '{schema_name}' not found.")
 
 
 def get_primary_key_column(table: Table) -> str:
