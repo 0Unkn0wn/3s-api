@@ -31,7 +31,7 @@ def read_tables_for_schema(current_user: SystemUser = Depends(get_current_user))
     schemas_and_tables = get_schemas_and_tables([schema_name])
     tables = get_tables_for_schema(schema_name, schemas_and_tables)
     if "message" in tables:
-        raise HTTPException(status_code=404, detail=tables["message"])
+        raise HTTPException(status_code=200, detail=tables["message"])
     return tables
 
 
