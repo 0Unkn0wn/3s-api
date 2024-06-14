@@ -187,11 +187,12 @@ def create_table_for_schema(
 ):
     # Define the table with the specified columns
     table_columns = []
-    for col_name, col_type in columns.items():
+    for col_name, col_props in columns.items():
+        col_type = map_column_type(col_props['type'], col_props.get('length'))
         if col_name == primary_key:
-            table_columns.append(Column(col_name, map_column_type(col_type), primary_key=True))
+            table_columns.append(Column(col_name, col_type, primary_key=True))
         else:
-            table_columns.append(Column(col_name, map_column_type(col_type)))
+            table_columns.append(Column(col_name, col_type))
 
     table = Table(
         table_name,
@@ -203,11 +204,14 @@ def create_table_for_schema(
 
     inspector = inspect(db.get_bind())
     if not inspector.has_table(table_name, schema=schema_name):
-        try:
-            table.create(bind=db.get_bind(), checkfirst=True)
-            return {"message": f"Table '{table_name}' created successfully in schema '{schema_name}'."}
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
+        with db.begin() as transaction:
+            try:
+                table.create(bind=db.get_bind(), checkfirst=True)
+                transaction.commit()
+                return {"message": f"Table '{table_name}' created successfully in schema '{schema_name}'."}
+            except Exception as e:
+                transaction.rollback()
+                raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
     else:
         return {"message": f"Table '{table_name}' already exists in schema '{schema_name}'."}
 
