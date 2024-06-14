@@ -193,8 +193,6 @@ def create_table_for_schema(
         extend_existing=True
     )
 
-    metadata.reflect(bind=db.get_bind(), only=[table_name], schema=schema_name)
-
     inspector = inspect(db.get_bind())
     if not inspector.has_table(table_name, schema=schema_name):
         try:
