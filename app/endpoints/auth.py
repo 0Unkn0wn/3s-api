@@ -61,7 +61,7 @@ def create_user(data: UserAuth, db: Session = Depends(get_db)):
 
         # Create a schema for the new user
         schema_name = f"user_own_data_{new_user.user_id}"
-        create_schema_ddl = DDL(f"CREATE SCHEMA {schema_name}")
+        create_schema_ddl = DDL(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
         db.execute(create_schema_ddl)
         db.commit()
     except Exception as e:

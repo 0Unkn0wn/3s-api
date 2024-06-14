@@ -21,9 +21,7 @@ def create_table(
     current_user: SystemUser = Depends(get_current_user)
 ):
     schema_name = f"user_own_data_{current_user.user_id}"
-    create_table_for_schema(db, schema_name, request.table_name, request.columns, request.primary_key)
-    return {"message": f"Table {request.table_name} created successfully in schema {schema_name}"}
-
+    return create_table_for_schema(db, schema_name, request.table_name, request.columns, request.primary_key)
 
 @router.get("/tables", response_model=TablesResponse)
 def read_tables_for_schema(current_user: SystemUser = Depends(get_current_user)):
