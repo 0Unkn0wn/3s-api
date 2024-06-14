@@ -152,27 +152,10 @@ def add_data_to_table(
 
 
 # Helper function to map string types to SQLAlchemy types
-# def map_column_type(col_type: str):
-#     if col_type.startswith("Integer"):
-#         return Integer
-#     elif col_type.startswith("String"):
-#         if "(" in col_type and ")" in col_type:
-#             length = int(col_type.split("(")[1].split(")")[0])
-#             return String(length)
-#         else:
-#             return String
-#     elif col_type.startswith("Float"):
-#         return Float
-#     elif col_type.startswith("Date"):
-#         return Date
-#     elif col_type.startswith("Boolean"):
-#         return Boolean
-#     else:
-#         raise ValueError(f"Unsupported column type: {col_type}")
 def map_column_type(column_type: str, length: int = None):
     try:
         if length:
-            return getattr(sa, column_type)(length)
+            return getattr(sa, column_type)(int(length))
         return getattr(sa, column_type)()
     except AttributeError:
         raise HTTPException(status_code=400, detail=f"Unsupported column type '{column_type}'.")
@@ -188,7 +171,11 @@ def create_table_for_schema(
     # Define the table with the specified columns
     table_columns = []
     for col_name, col_props in columns.items():
-        col_type = map_column_type(col_props['type'], col_props.get('length'))
+        if isinstance(col_props, list) and len(col_props) == 2:
+            col_type, col_length = col_props
+            col_type = map_column_type(col_type, col_length)
+        else:
+            col_type = map_column_type(col_props)
         if col_name == primary_key:
             table_columns.append(Column(col_name, col_type, primary_key=True))
         else:
