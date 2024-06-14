@@ -196,17 +196,14 @@ def create_table_for_schema(
     metadata.reflect(bind=db.get_bind(), only=[table_name], schema=schema_name)
 
     if not db.get_bind().dialect.has_table(db.get_bind(), table_name, schema=schema_name):
-            # Create the table in the database
-            try:
-                table.create(bind=db.get_bind(), checkfirst=True)
-                return {"message": f"Table '{table_name}' created successfully in schema '{schema_name}'."}
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
-        else:
-            return {"message": f"Table '{table_name}' already exists in schema '{schema_name}'."}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating table '{table_name}' in schema '{schema_name}': {e}")
+        # Create the table in the database
+        try:
+            table.create(bind=db.get_bind(), checkfirst=True)
+            return {"message": f"Table '{table_name}' created successfully in schema '{schema_name}'."}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
+    else:
+        return {"message": f"Table '{table_name}' already exists in schema '{schema_name}'."}
 
 
 def get_table_structure(schema_name: str, table_name: str) -> TableStructureResponse:
