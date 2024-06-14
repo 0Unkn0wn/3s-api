@@ -19,7 +19,6 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 engine = create_engine(f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_URL}/db-3s")
 
 metadata = MetaData()
-metadata.reflect(bind=engine)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -190,7 +189,8 @@ def create_table_for_schema(
         table_name,
         metadata,
         *table_columns,
-        schema=schema_name
+        schema=schema_name,
+        extend_existing=True
     )
 
     try:
