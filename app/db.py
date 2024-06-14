@@ -191,14 +191,14 @@ def create_table_for_schema(
 
     inspector = inspect(db.get_bind())
     if not inspector.has_table(table_name, schema=schema_name):
-        with db.begin() as transaction:
-            try:
-                table.create(bind=db.get_bind(), checkfirst=True)
-                transaction.commit()
-                return {"message": f"Table '{table_name}' created successfully in schema '{schema_name}'."}
-            except Exception as e:
-                transaction.rollback()
-                raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
+        try:
+            # Create the table in the database
+            table.create(bind=db.get_bind(), checkfirst=True)
+            db.commit()
+            return {"message": f"Table '{table_name}' created successfully in schema '{schema_name}'."}
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
     else:
         return {"message": f"Table '{table_name}' already exists in schema '{schema_name}'."}
 
