@@ -195,8 +195,8 @@ def create_table_for_schema(
 
     metadata.reflect(bind=db.get_bind(), only=[table_name], schema=schema_name)
 
-    if not db.get_bind().dialect.has_table(db.get_bind(), table_name, schema=schema_name):
-        # Create the table in the database
+    inspector = inspect(db.get_bind())
+    if not inspector.has_table(table_name, schema=schema_name):
         try:
             table.create(bind=db.get_bind(), checkfirst=True)
             return {"message": f"Table '{table_name}' created successfully in schema '{schema_name}'."}
