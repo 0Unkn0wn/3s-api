@@ -7,6 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import MetaData, create_engine, inspect, select, Column, Integer, String, Float, Date, Boolean, update
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.testing.schema import Table
+import sqlalchemy as sa
 
 from app.schemas.response_models import TableStructureResponse
 
@@ -151,23 +152,30 @@ def add_data_to_table(
 
 
 # Helper function to map string types to SQLAlchemy types
-def map_column_type(col_type: str):
-    if col_type.startswith("Integer"):
-        return Integer
-    elif col_type.startswith("String"):
-        if "(" in col_type and ")" in col_type:
-            length = int(col_type.split("(")[1].split(")")[0])
-            return String(length)
-        else:
-            return String
-    elif col_type.startswith("Float"):
-        return Float
-    elif col_type.startswith("Date"):
-        return Date
-    elif col_type.startswith("Boolean"):
-        return Boolean
-    else:
-        raise ValueError(f"Unsupported column type: {col_type}")
+# def map_column_type(col_type: str):
+#     if col_type.startswith("Integer"):
+#         return Integer
+#     elif col_type.startswith("String"):
+#         if "(" in col_type and ")" in col_type:
+#             length = int(col_type.split("(")[1].split(")")[0])
+#             return String(length)
+#         else:
+#             return String
+#     elif col_type.startswith("Float"):
+#         return Float
+#     elif col_type.startswith("Date"):
+#         return Date
+#     elif col_type.startswith("Boolean"):
+#         return Boolean
+#     else:
+#         raise ValueError(f"Unsupported column type: {col_type}")
+def map_column_type(column_type: str, length: int = None):
+    try:
+        if length:
+            return getattr(sa, column_type)(length)
+        return getattr(sa, column_type)()
+    except AttributeError:
+        raise HTTPException(status_code=400, detail=f"Unsupported column type '{column_type}'.")
 
 
 def create_table_for_schema(
