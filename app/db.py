@@ -200,7 +200,7 @@ def create_table_for_schema(
             db.rollback()
             raise HTTPException(status_code=500, detail=f"Error creating table: {e}")
     else:
-        return {"message": f"Table '{table_name}' already exists in schema '{schema_name}'."}
+        raise HTTPException(status_code=409, detail=f"Table '{table_name}' already exists in schema '{schema_name}'.")
 
 
 def get_table_structure(schema_name: str, table_name: str) -> TableStructureResponse:
