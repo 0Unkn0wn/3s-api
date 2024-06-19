@@ -67,7 +67,7 @@ def get_tables_for_schema(schema_name: str, schemas_and_tables: List[Dict[str, A
     for schema in schemas_and_tables:
         if schema['schema'] == schema_name:
             if not schema['tables']:
-                raise HTTPException(status_code=200, detail=f"No tables for schema '{schema_name}'.")
+                return {"schema_name": schema_name, "tables": []}
             return {"schema_name": schema_name, "tables": jsonable_encoder(schema['tables'])}
     raise HTTPException(status_code=404, detail=f"Schema '{schema_name}' not found.")
 
