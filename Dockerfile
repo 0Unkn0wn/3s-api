@@ -12,6 +12,7 @@ COPY ./genenv.py /code/genenv.py
 
 RUN touch /code/.env
 
+#credits for the idea to mount them like this go to https://github.com/docker/build-push-action/issues/390#issuecomment-866761773
 RUN --mount=type=secret,id=DB_URL \
   --mount=type=secret,id=DB_USER \
   --mount=type=secret,id=DB_PASSWORD \

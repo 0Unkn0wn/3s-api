@@ -13,7 +13,7 @@ from app.schemas.user import TokenPayload, SystemUser
 
 reuseable_oauth = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-
+#credits for the base go to https://www.freecodecamp.org/news/how-to-add-jwt-authentication-in-fastapi/
 async def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depends(get_db)) -> SystemUser:
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])

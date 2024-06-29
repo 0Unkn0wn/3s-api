@@ -1,3 +1,5 @@
+#credits for the idea go to https://github.com/docker/build-push-action/issues/390#issuecomment-866744086
+
 import os
 
 

@@ -3,19 +3,19 @@ from app.endpoints import ground_data, auth, user_data
 from app.utils import get_current_user
 
 description = """
-3S API for our service
+This FastAPI application offers a structured approach to handle public and private data schemas stored in a PostgreSQL database. 
+Key functionalities include data retrieval, insertion, and schema management. 
+The API ensures secure access with JWT-based authentication, and leverages Azure services for deployment, including automated CI/CD with GitHub Actions for consistent updates and reliability.
 """
 
 app = FastAPI(
     title="GRND133",
     description=description,
-    summary="empty",
-    version="0.0.1",
-    terms_of_service="http://empty.com",
+    version="1.0",
     contact={
-        "name": "3S",
-        "url": "http://empty.com",
-        "email": "empty@gmail.com",
+        "name": "3S Grounded 133",
+        "url": "https://kind-glacier-0aee57503.5.azurestaticapps.net/",
+        "email": "514541@student.saxion.nl",
     },
     license_info={
         "name": "Apache 2.0",

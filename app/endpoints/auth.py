@@ -11,7 +11,7 @@ from app.db import get_db, metadata, engine
 from app.utils import get_current_user
 router = APIRouter()
 
-
+#credits for the base go to https://www.freecodecamp.org/news/how-to-add-jwt-authentication-in-fastapi/
 @router.post('/signup', summary="Create new user", response_model=UserOut)
 def create_user(data: UserAuth, db: Session = Depends(get_db)):
     table_user = Table('user', metadata, autoload_with=engine, schema='account')
